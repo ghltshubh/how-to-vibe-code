@@ -17,18 +17,38 @@ The key insight: **Planning first forces you and the AI onto the same page and p
 
 | Phase | Output | Key Prompt |
 |-------|--------|------------|
-| 1. Requirements | `spec.md` | "Ask me questions until we've fleshed out requirements" |
-| 2. Project Plan | `plan.md` | "Break this into logical, numbered tasks" |
+| 1. Requirements | Spec (in chat or file) | "Ask me questions until we've fleshed out requirements" |
+| 2. Project Plan | Task list (in chat or file) | "Break this into logical, numbered tasks" |
 | 3. Structure | Directory scaffold | "Create project structure with src/ layout" |
 | 4. Implementation | Working code | "Let's implement Step N from the plan" |
 | 5. Polish | Docs + tests | "Review for issues, add documentation" |
+
+> **Note:** Phases 1-2 don't require actual files — the spec and plan can live entirely in your conversation. Only create `spec.md` / `plan.md` files for team projects or complex systems you'll reference later.
 
 ---
 
 ## Phase 1: Requirements & Specification
 
 ### The Goal
-Create a comprehensive `spec.md` containing requirements, architecture decisions, data models, and testing strategy.
+Clarify requirements through Q&A before writing any code. This can be a conversation or a formal `spec.md` file.
+
+### Two Approaches
+
+**Quick (in-conversation):**
+```
+Human: I want to build X. Ask me questions.
+LLM:   [asks 5-7 clarifying questions]
+Human: [answers]
+LLM:   Great, here's what we're building: [summary]
+       Ready to start planning?
+```
+
+**Formal (create spec.md):**
+```
+Human: I want to build [PROJECT].
+       Ask me questions until we've fleshed out requirements.
+       Then compile into a spec document.
+```
 
 ### Prompt Template
 ```
@@ -113,9 +133,21 @@ One-paragraph description of what we're building and why.
 ## Phase 2: Project Plan
 
 ### The Goal
-Break the spec into logical, bite-sized tasks or milestones.
+Break the work into numbered, trackable tasks. This can stay in the conversation or be saved as `plan.md`.
 
-### Prompt Template
+### Quick Approach
+```
+Human: OK, let's plan this out. Break into numbered steps.
+LLM:   Here's the plan:
+       1. Setup project structure
+       2. Implement data loader
+       3. Add core processing logic
+       ...
+       Ready to start with Step 1?
+Human: Yes, let's go.
+```
+
+### Formal Prompt Template
 ```
 Based on this spec, generate a project plan:
 
@@ -260,7 +292,8 @@ Output the full file tree and contents of key files.
 ## Phase 4: Iterative Implementation
 
 ### The Core Principle
-> "LLMs do best when given focused prompts: implement one function, fix one bug, add one feature at a time."
+
+LLMs do best when given focused prompts: implement one function, fix one bug, add one feature at a time.
 
 ### The Loop
 ```
@@ -401,53 +434,42 @@ Review this codebase and flag any violations.
 
 ## Complete Session Example
 
-Here's a condensed real-world session building a data pipeline:
+### Minimal Session (Solo/Small Project)
+
+For quick projects, planning can be just 2-3 exchanges:
 
 ```
-SESSION START
-─────────────────────────────────────────────────────────
+Human: I want to build a script that downloads ERA5 data. Ask me questions.
+LLM:   1. What variables? 2. Time range? 3. Output format?
+Human: Temp and precip, summer 2025, Zarr format.
+LLM:   Got it. Here's the plan:
+       1. Set up project with xarray/zarr deps
+       2. Implement downloader with chunking
+       3. Add CLI interface
+       Ready for Step 1?
+Human: Yes, let's go.
+```
 
-[TURN 1 - Requirements]
-Human: I want to build an Airflow DAG that downloads ERA5 data 
-       from Google Cloud ARCO dataset for fire spread modeling.
+### Full Session (Team/Complex Project)
 
-LLM: Let me ask some questions:
-- What variables do you need?
-- What's the time range?
-- Where should data be stored?
-- What's the schedule?
-[Q&A continues → spec.md created]
-
-[TURN 2 - Plan]
-Human: Generate a project plan from this spec.
-LLM: [Creates numbered task list]
-
-[TURN 3 - Structure]  
-Human: Create the directory structure for this DAG.
-LLM: [Outputs file tree + pyproject.toml + skeleton files]
-
-[TURN 4 - Implementation]
-Human: Let's implement the download function (Step 2.1)
-LLM: [Implements download_era5() with chunking, error handling]
-
-[TURN 5 - Edge Case]
-Human: I added soil_temperature_level_1. Check for issues.
-LLM: "Soil temp has a 'level' dimension - needs .sel(level=1)"
-
-[TURN 6 - Fix]
-Human: Provide the complete corrected file.
-LLM: [Full working implementation]
-
-[TURN 7 - Test]
-Human: How do I test it?
-LLM: [3 testing approaches: local, Airflow, syntax check]
-
-[TURN 8 - Documentation]
-Human: Create daily update + GitHub README.
-LLM: [Team update + documentation]
-
-SESSION END
-─────────────────────────────────────────────────────────
+```
+[TURN 1] Human: I want to build an Airflow DAG for ERA5 downloads.
+         LLM:   Questions: variables? schedule? storage location?
+         
+[TURN 2] Human: [answers questions]
+         LLM:   Here's the plan: 1. Setup 2. Loader 3. DAG 4. Tests
+         
+[TURN 3] Human: Create directory structure.
+         LLM:   [outputs file tree + pyproject.toml]
+         
+[TURN 4] Human: Implement Step 2 (loader).
+         LLM:   [code with type hints, docstrings]
+         
+[TURN 5] Human: I added soil_temp. Check for issues.
+         LLM:   "Needs .sel(level=1) for the level dimension"
+         
+[TURN 6] Human: Provide complete file.
+         LLM:   [full working implementation]
 ```
 
 ---
@@ -457,7 +479,7 @@ SESSION END
 ### ❌ Skipping the Plan
 ```
 Bad:  "Build me an ETL pipeline"
-Good: [spec.md] → [plan.md] → "Let's implement Step 1"
+Good: [clarify requirements] → [get task list] → "Let's implement Step 1"
 ```
 
 ### ❌ Asking for Everything at Once
@@ -494,22 +516,19 @@ Good: Commit after each task (1.1, 1.2, 1.3...)
 ### Phase 1: Requirements
 ```
 I want to build [PROJECT].
-Ask me questions until we've fleshed out requirements.
-Then compile into spec.md.
+Ask me questions until requirements are clear.
 ```
 
 ### Phase 2: Planning
 ```
-Based on this spec, create a numbered task list.
-Break into phases with complexity estimates.
-[PASTE spec.md]
+Let's plan this out.
+Break into numbered steps with complexity estimates.
 ```
 
 ### Phase 3: Structure
 ```
-Create Python project structure (src/ layout) for this plan.
+Create Python project structure (src/ layout) for this.
 Include pyproject.toml, tests/, and skeleton files.
-[PASTE plan.md]
 ```
 
 ### Phase 4: Implementation
@@ -523,15 +542,14 @@ Include: type hints, docstrings, error handling, tests.
 ```
 Review this codebase for issues.
 Check: consistency, error handling, performance, docs, tests.
-[PASTE CODE]
 ```
 
 ---
 
 ## Key Takeaways
 
-1. **Spec First** — Don't code until you have a clear spec.md
-2. **Plan the Work** — Break into numbered, trackable tasks
+1. **Clarify First** — Don't code until requirements are clear (conversation or spec.md)
+2. **Plan the Work** — Break into numbered, trackable tasks (conversation or plan.md)
 3. **Structure Matters** — Use src/ layout from the start
 4. **Small Steps** — One task per prompt, one commit per task
 5. **Always Validate** — "Check for issues" after every change
