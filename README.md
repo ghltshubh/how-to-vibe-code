@@ -1,2 +1,2 @@
 # how-to-vibe-code
-Best practices to vide coding
+Best practices for vibe coding
