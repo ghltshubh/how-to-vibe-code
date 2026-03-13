@@ -537,5 +537,3 @@ Check: consistency, error handling, performance, docs, tests.
 5. **Always Validate** — "Check for issues" after every change
 6. **Context is King** — Show AI the interfaces, constraints, and related code
 7. **Challenge Assumptions** — "Why this approach?" "What are the gaps?"
-
-> "It's like doing waterfall in 15 minutes — a rapid structured planning phase that makes the subsequent coding much smoother."
